@@ -313,22 +313,22 @@
     }
 
     function handleFile(f){
-      const r = new FileReader();
-      r.onload = e => {
-        let data = e.target.result;
-        if(f.name.endsWith('.csv')){
-          data = e.target.result.trim().split('\n').slice(1).map(l => {
-            const p=l.split(',');
-            return{time:Date.parse(p[0].replace(/\//g,'-')),symbol:p[1],direction:p[2]==='Buy'?1:-1,open_price:+p[3],stop_loss:+p[4],take_price:+p[5]||+p[6],take_profit:+p[6]||+p[5],size:+p[7],profit:+p[8]||0,notes:p[9]||''};
-          });
-        }else if(f.name.endsWith('.json')){ data = JSON.parse(e.target.result); }
-        trades.push(...data);
-        trades = [...new Map(trades.map(t => [Object.keys(t).join(','),t])).values()].slice(-500);
-        localStorage.setItem('sualih-trades', JSON.stringify(trades));
-        render();
-      };
-      r.readAsText(f);
-    }
+          const r = new FileReader();
+          r.onload = e => {
+            let data = e.target.result;
+            if(f.name.endsWith('.csv')) data = e.target.result.trim().split('\n').slice(1).map(l => { const p=l.split(','); return{time:Date.parse(p[0].replace(/\\//g,'-')),symbol:p[1],direction:p[2]==='Buy'?1:-1,open_price:+p[3],stop_loss:+p[4],take_price:+p[5]||+p[6],take_profit:+p[6]||+p[5],size:+p[7],profit:+p[8]||0,notes:p[9]||''}; });
+            else if(f.name.endsWith('.json')) data = JSON.parse(e.target.result);
+            else if(f.name.endsWith('.xlsx')) data = []; // Basic xlsx not implemented
+            data.forEach(t => trades.push(t));
+            // Deduplicate by timestamp only
+            let seen = {};
+            trades = trades.filter(t => { if(seen[t.time]) return false; seen[t.time]=true; return true; });
+            trades = trades.slice(-500);
+            localStorage.setItem('sualih-trades', JSON.stringify(trades));
+            render();
+          };
+          r.readAsText(f);
+        }
 
     // File / Dropzone handling
     document.getElementById('dz').addEventListener('click',()=>document.getElementById('fileInput').click());
