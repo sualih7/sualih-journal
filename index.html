@@ -2,135 +2,361 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Sualih Journal | Trade Tracker</title>
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Sualih Journal</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    :root{--bg:#020617;--surface:#0f172a;--card:#111827;--border:#1e293b;--accent:#00d4ff;--win:#04c49c;--loss:#ff4757;--text:#e2e8f0;--muted:#94a3b8;--shadow:0 4px 20px rgba(0,0,0,.3);--glass:rgba(255,255,255,.05)}
+    :root{
+      --bg:#020617;--surface:#0f172a;--card:#111827;--border:#1e293b;--accent:#00d4ff;
+      --win:#04c49c;--loss:#ff4757;--text:#e2e8f0;--muted:#94a3b8;
+      --shadow:0 8px 32px rgba(0,0,0,.4);--glass:rgba(255,255,255,.05);
+    }
+    *[data-theme="light"]{
+      --bg:#f8fafc;--surface:#eff6ff;--card:#ffffff;--border:#cbd5e1;--text:#0f172a;--muted:#64748b;
+      --win:#059669;--loss:#dc2626;--shadow:0 4px 12px rgba(0,0,0,.1);--glass:rgba(255,255,255,.6);
+    }
     *{margin:0;padding:0;box-sizing:border-box}
-    body{font-family:'Inter','Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;background:linear-gradient(135deg,#020617 0%,#0a122b 50%,#020617 100%)}
-    .glass{background:var(--glass);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.1);border-radius:12px}
-    .container{max-width:1440px;margin:0 auto;padding:24px}
-    .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;border-bottom:1px solid var(--border);padding-bottom:16px}
+    body{
+      font-family:'Inter','Segoe UI',sans-serif;
+      background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;
+    }
+    .glass{background:var(--glass);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.1);border-radius:16px}
+    .gradient{
+      background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+    }
+    .container{max-width:1400px;margin:0 auto;padding:24px}
+    .header{
+      display:flex;justify-content:space-between;align-items:center;
+      margin-bottom:20px;padding:16px 0;border-bottom:1px solid var(--border);
+    }
     .logo{font-size:1.8rem;font-weight:700;background:linear-gradient(90deg,var(--accent),#4a4aff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-    .nav{display:flex;gap:24px} .nav a{color:var(--muted);text-decoration:none;font-weight:500;transition:.2s}.nav a:hover{color:var(--accent)}
-    .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:16px;margin-bottom:24px}
-    .stat{background:var(--card);border-radius:12px;padding:20px;text-align:center;transition:transform .2s}.stat:hover{transform:translateY(-2px)}
-    .stat-value{font-size:1.6rem;font-weight:600}.stat-value.gold{background:linear-gradient(90deg,var(--accent),#4a4aff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-    .stat-label{color:var(--muted);font-size:.8rem}
-    .main{display:grid;gap:16px;grid-template-columns:2fr 1fr}
+    .nav{display:flex;gap:20px;align-items:center}
+    .nav a{color:var(--muted);text-decoration:none;font-weight:500;transition:.2s}.nav a:hover{color:var(--accent)}
+    
+    /* Theme Toggle */
+    .theme-toggle{background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--muted)}
+    
+    /* Balance Card */
+    .balance-card{
+      background:var(--card);border-radius:16px;padding:24px;
+      box-shadow:var(--shadow);text-align:center;margin-bottom:20px;
+    }
+    .balance{value}  {font-size:2rem;font-weight:700;background:linear-gradient(90deg,var(--accent),#4a4aff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    .pnl-positive{.pnl positive value}  {color:var(--win)}
+    .pnl-negative{.pnl negative value}  {color:var(--loss)}
+    
+    /* Grid */
+    .grid{display:grid;gap:20px}
+    .left{flex:2}
+    .right{flex:1}
+    
+    /* Stats */
+    .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px}
+    .stat{background:var(--card);border-radius:12px;padding:16px;text-align:center;box-shadow:var(--shadow)}
+    .stat-value{font-size:1.4rem;font-weight:600}.stat-label{font-size:.75rem;color:var(--muted)}
+    
+    /* Cards */
     .card{background:var(--card);border-radius:12px;padding:20px;box-shadow:var(--shadow)}
-    .card h2{font-size:1.1rem;font-weight:600;margin-bottom:16px;color:var(--accent)}
-    .dropzone{border:2px dashed var(--accent);border-radius:12px;padding:40px;text-align:center;color:var(--muted);cursor:pointer;transition:.3s}.dropzone:hover{border-color:var(--accent);background:var(--glass)}
+    .card h2{font-size:1rem;font-weight:600;margin-bottom:12px;color:var(--accent)}
+    .card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+    
+    /* Dropzone */
+    .dropzone{border:2px dashed var(--accent);border-radius:12px;padding:32px;text-align:center;color:var(--muted);cursor:pointer;transition:.3s}
+    .dropzone:hover,.dropzone.drag{border-color:var(--accent);background:var(--glass)}
     .dropzone input{display:none}
-    .table{width:100%;border-collapse:collapse;font-size:.85rem}.table th,.table td{padding:10px 8px;border-bottom:1px solid var(--border)}.table th{background:var(--surface);color:var(--accent);font-weight:500;text-transform:uppercase;font-size:.7rem}.table tr:hover{background:rgba(0,212,255,.03)}
-    .badge{display:inline-block;padding:4px 10px;border-radius:20px;font-size:.75rem;font-weight:500}.badge-win{background:rgba(4,196,156,.15);color:var(--win)}.badge-loss{background:rgba(255,71,87,.15);color:var(--loss)}
-    .chart{height:200px}.chart div{flex:1;background:var(--accent);height:100%;border-radius:4px 4px 0 0}
-    .alert{color:var(--muted);font-size:.8rem}
+    
+    /* Table */
+    .table{width:100%;border-collapse:collapse;font-size:.85rem}
+    .table th,.table td{padding:10px 8px;border-bottom:1px solid var(--border)}
+    .table th{background:var(--surface);color:var(--accent);font-weight:500;text-transform:uppercase;letter-spacing:.5px}
+    .table tr:hover{background:rgba(0,212,255,.05)}
+    .dir-buy{color:var(--win)}.dir-sell{color:var(--loss)}
+    .badge{font-size:.7rem;padding:4px 10px;border-radius:20px;font-weight:500}
+    .badge-win{background:rgba(4,196,156,.15);color:var(--win)}
+    .badge-loss{background:rgba(255,71,87,.15);color:var(--loss)}
+    
+    /* Chart */
+    .chart{height:180px;display:flex;align-items:flex-end;gap:6px;padding-top:10px}
+    .bar{flex:1;background:var(--accent);border-radius:6px 6px 0 0;transition:height .3s}
+    .bar-loss{background:var(--loss)}
+    
+    /* Timeline */
+    .timeline{display:flex;justify-content:space-between;align-items:center;margin-top:12px}
+    .timeline-item{text-align:center}
+    .timeline-value{font-size:1rem;font-weight:600;color:var(--text)}
+    
+    /* Goal Tracker */
+    .goal{progress-bar}  {appearance:none;width:100%;height:12px;background:var(--border);border-radius:6px;overflow:hidden;margin-top:8px}
+    .goal-bar{width:0%;height:100%;background:linear-gradient(90deg,var(--win),var(--accent));transition:width .5s}
+    .goal-text{font-size:.75rem;color:var(--muted)}
+    
+    .alert{font-size:.8rem;color:var(--muted)}
   </style>
 </head>
 <body>
   <div class="container">
     <div class="header">
       <div class="logo">Sualih Journal</div>
-      <div class="nav"><a href="#import">Import</a><a href="#stats">Stats</a><a href="#trades">Trades</a><a href="#settings">Settings</a></div>
-    </div>
-    <p class="alert">Gold / XAUUSD Trade Tracker • Sync: MT5 → Local Storage • Balance: $200</p>
-
-    <div class="stats">
-      <div class="stat"><div class="stat-value gold" id="bal">$200.00</div><div class="stat-label">Balance</div></div>
-      <div class="stat"><div class="stat-value" id="pl">+0.00</div><div class="stat-label">P&L</div></div>
-      <div class="stat"><div class="stat-value" id="wr">0%</div><div class="stat-label">Win Rate</div></div>
-      <div class="stat"><div class="stat-value" id="pf">0.0x</div><div class="stat-label">Profit Factor</div></div>
-      <div class="stat"><div class="stat-value" id="rr">0.0x</div><div class="stat-label">Avg RR</div></div>
-      <div class="stat"><div class="stat-value" id="total">0</div><div class="stat-label">Total Trades</div></div>
-    </div>
-
-    <div class="main">
-      <div>
-        <div class="card" id="import"><h2>📁 MT5 Import</h2><div class="dropzone" id="dz"><div style="font-size:2rem;">📂</div><div><strong>Drop MT5 CSV or JSON</strong></div><input type="file" id="fl" accept=".csv,.json"></div></div>
-        <div class="card" id="trades"><h2>📋 Trades</h2><table class="table"><thead><tr><th>Date</th><th>Symbol</th><th>Dir</th><th>Entry</th><th>SL</th><th>TP</th><th>Size</th><th>P&L</th><th>RR</th></tr></thead><tbody id="tb"></tbody></table></div>
+      <div class="nav">
+        <span>📊 Tradezella-Style Dashboard</span>
+        <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">🌙</button>
       </div>
-      <div>
-        <div class="card"><h2>📊 Equity Curve</h2><div class="chart" id="chart"></div></div>
-        <div class="card" id="settings"><h2>⚙️ Tools</h2><button onclick="exportData()" style="padding:8px 12px;margin-right:8px">📥 Export</button><button onclick="clearAll()" style="padding:8px 12px;background:#ff4757;color:#fff;border:none;border-radius:6px">🗑︎ Clear</button></div>
+    </div>
+
+    <!-- Balance Card -->
+    <div class="balance-card">
+      <h3 style="color:var(--muted);margin-bottom:8px">Current Balance</h3>
+      <div class="balance value" id="bal">$200.00</div>
+      <p style="margin-top:8px;font-size:.9rem"><span id="pnl-sign"></span><span id="pnl">0.00</span> (<span id="pct">0%</span>)</p>
+    </div>
+
+    <!-- Goal Tracker -->
+    <div class="card" style="margin-bottom:20px">
+      <h2>🎯 Growth Plan $200 → $10,000</h2>
+      <p class="alert">Total target: <strong>$10,000</strong> (50x return)</p>
+      <div class="timeline">
+        <div class="timeline-item"><div class="timeline-value" id="current">$200</div><div class="timeline-item-text" style="font-size:.75rem;color:var(--muted)">Current</div></div>
+        <div class="timeline-item"><div class="timeline-value" id="target">$10,000</div><div class="timeline-item-text" style="font-size:.75rem;color:var(--muted)">Target</div></div>
+      </div>
+      <progress class="goal" value="0" max="10000" id="goalBar">
+        <div class="goal-bar" id="goalBarFiller"></div>
+      </progress>
+      <p class="goal-text" id="goalText">Progress: 0% to $10,000 goal</p>
+    </div>
+
+    <div class="grid">
+      <div class="left">
+        <!-- Stats -->
+        <div class="stats">
+          <div class="stat">
+            <div class="stat-value" id="pl">'+0.00'</div>
+            <div class="stat-label">P&L</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value" id="wr">0%</div>
+            <div class="stat-label">Win Rate</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value" id="pf">0.0x</div>
+            <div class="stat-label">Profit Factor</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value" id="rr">0.00x</div>
+            <div class="stat-label">Avg RR</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value" id="total">0</div>
+            <div class="stat-label">Total Trades</div>
+          </div>
+        </div>
+
+        <!-- Import Card -->
+        <div class="card" id="import">
+          <div class="card-header">
+            <h2>📁 Import Trades</h2>
+            <input type="file" id="fileInput" accept=".csv,.json,.xlsx" style="display:none">
+          </div>
+          <div class="dropzone" id="dz">
+            <div style="font-size:2rem;margin-bottom:8px;">📂</div>
+            <div><strong>Drop MT5 CSV/JSON/XLSX</strong></div>
+            <p class="alert">or click anywhere</p>
+            <input type="file" id="flInput" accept=".csv,.json,.xlsx" style="display:none">
+          </div>
+        </div>
+
+        <!-- Trades Table -->
+        <div class="card" id="trades">
+          <div class="card-header">
+            <h2>📋 Trades</h2>
+            <select id="symbolFilter" onchange="filterTable()"><option value="">All Symbols</option><option value="XAUUSD">XAUUSD</option><option value="USDCHF">USDCHF</option></select>
+          </div>
+          <table class="table"><thead><tr><th>Date</th><th>Symbol</th><th>Dir</th><th>Entry</th><th>SL</th><th>TP</th><th>Size</th><th>P&L</th><th>RR</th><th>Notes</th></tr></thead><tbody id="tbody"></tbody></table>
+        </div>
+      </div>
+
+      <!-- Right Sidebar -->
+      <div class="right">
+        <!-- Equity Chart -->
+        <div class="card">
+          <h2>📊 Equity Curve</h2>
+          <div class="chart" id="chart"></div>
+          <div class="timeline">
+            <div class="timeline-item"><div class="timeline-value" id="chartStart">$200</div><div class="timeline-item-text">Start</div></div>
+            <div class="timeline-item"><div class="timeline-value" id="chartEnd">$200</div><div class="timeline-item-text">End</div></div>
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card" id="actions">
+          <h2>⚙️ Quick Actions</h2>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button onclick="exportCSV()" style="flex:1">📥 CSV</button>
+            <button onclick="exportJSON()" style="flex:1">📋 JSON</button>
+            <button onclick="exportPDF()" style="flex:1">📄 PDF</button>
+            <button onclick="clearData()" style="flex:1;background:#ff4757;color:#fff">🗑️ Clear</button>
+          </div>
+        </div>
+
+        <!-- Profit Distribution -->
+        <div class="card">
+          <h2>📈 Profit Distribution</h2>
+          <div id="dist"></div>
+        </div>
       </div>
     </div>
   </div>
 
   <script>
-    const BAL=200;
-    let trades=JSON.parse(localStorage.getItem('sualih-trades')||'[]');
+    const BAL = 200;
+    let trades = JSON.parse(localStorage.getItem('sualih-trades') || '[]');
+    const THEME_KEY = 'sualih-theme';
     
-    function fmt(t){return new Date(t).toLocaleString(undefined,{dateStyle:'short',timeStyle:'short'})}
-    function rr(e,s,tp){const r=e-s?e-s:0;const rw=tp-e?tp-e:0;return r?+(rw/r).toFixed(2):0}
+    function formatDate(ts){return new Date(ts).toLocaleString(undefined,{dateStyle:'short',timeStyle:'short'})}
     
-    function render(){
-      let pnl=0,wins=0,losses=0,rrr=0,eq=[BAL];
-      trades.forEach(t=>{pnl+=t.profit;if(t.profit>0)wins++;else if(t.profit<0)losses++;rrr+=rr(t.open_price,t.stop_loss,t.take_profit);eq.push(eq[eq.length-1]+t.profit)});
-      document.getElementById('bal').textContent='$'+(BAL+pnl).toFixed(2);
-      document.getElementById('pl').textContent=pnl>=0?'+$'+pnl.toFixed(2):'-$'+Math.abs(pnl).toFixed(2);
-      document.getElementById('wr').textContent=trades.length?Math.round(wins/trades.length*100)+'%':'0%';
-      document.getElementById('pf').textContent=losses?Math.round(wins/Math.abs(losses)*100)/100+'x':'∞';
-      document.getElementById('rr').textContent=trades.length?rr.toFixed(2)+'x':'0x';
-      document.getElementById('total').textContent=trades.length;
-      document.getElementById('chart').innerHTML=eq.map((v,i)=>{const h=200-(Math.abs(v)/(Math.max(...eq.map(Math.abs),BAL))*150);return `<div style="height:${h}px"></div>`}).join('');
-      document.getElementById('tb').innerHTML=trades.map(t=>{
-        const dir=t.direction===1?'Buy':'Sell';
-        const cls=t.direction===1'?''':'text-danger';
-        const bl=t.profit>=0?'badge-win':'badge-loss';
-        return `<tr><td>${fmt(t.time)}</td><td>${t.symbol||'XAUUSD'}</td><td class="${cls}">${dir}</td><td>${t.open_price}</td><td>${t.stop_loss}</td><td>${t.take_profit}</td><td>${t.size}</td><td class="${t.profit>=0?'text-success':'text-danger'}">${t.profit.toFixed(2)}</td><td><span class="${bl}">${rr(t.open_price,t.stop_loss,t.take_profit)}x</span></td></tr>`;
-      }).reverse().join('');
+    function calcRR(e,s,tp){const r=e-s,p=tp-e;return r?+(p/r).toFixed(2):0}
+    
+    function toggleTheme(){
+      const html=document.documentElement;
+      const isLight=html.getAttribute('data-theme')==='light';
+      const newVal=isLight?'dark':'light';
+      html.setAttribute('data-theme',newVal);
+      localStorage.setItem(THEME_KEY,newVal);
+      document.querySelector('.theme-toggle').textContent=isLight?'🌙':'☀️';
     }
     
+    function initTheme(){
+      const saved=localStorage.getItem(THEME_KEY);
+      if(saved){document.documentElement.setAttribute('data-theme',saved)}
+      document.querySelector('.theme-toggle').textContent=document.documentElement.getAttribute('data-theme')==='light'?'🌙':'☀️';
+    }
+    
+    function render(){
+      let pnl=0,wins=0,losses=0,rrr=0,eq=[BAL],maxD=-BAL,mn=0;
+      trades.forEach(t=>{
+        pnl+=t.profit;
+        if(t.profit>0)wins++;else if(t.profit<0){losses++;if(Math.abs(t.profit)>maxD){maxD=Math.abs(t.profit);mn=t.profit}}<++
+        rrr+=calcRR(t.open_price,t.stop_loss,t.take_price||t.take_profit);
+        eq.push(eq[eq.length-1]+t.profit);
+      });
+      
+      document.getElementById('bal').textContent='$'+(BAL+pnl).toFixed(2);
+      document.getElementById('pnl').textContent=(pnl>=0?'+':'-')+Math.abs(pnl).toFixed(2);
+      document.getElementById('pnl-sign').textContent=pnl>=0?'+':'-';
+      document.getElementById('pct').textContent=trades.length?((pnl/BAL*100).toFixed(1)) +'%': '0%';
+      document.getElementById('pl').textContent=(pnl>=0?'':'-')+Math.abs(pnl).toFixed(2);
+      document.getElementById('wr').textContent=trades.length?Math.round(wins/trades.length*100*10)/10+'%':'0%';
+      document.getElementById('pf').textContent=losses?Math.round(wins/Math.abs(losses)*100)/10+'x':'∞';
+      document.getElementById('rr').textContent=trades.length?(rrr/trades.length).toFixed(2)+'x':'0x';
+      document.getElementById('total').textContent=trades.length;
+      document.getElementById('current').textContent='$'+(BAL+pnl).toFixed(2);
+      document.getElementById('chartEnd').textContent='$'+(BAL+pnl).toFixed(2);
+      
+      const progress = Math.min((BAL+pnl)/10000*100,100);
+      document.getElementById('goalBarFiller').style.width = progress + '%';
+      document.getElementById('goalText').textContent = `Progress: ${progress.toFixed(1)}% → $${(BAL+pnl).toFixed(2)} of $10,000`;
+
+      // Equity Chart
+      const maxE = Math.max(...eq.map(Math.abs), BAL*1.1);
+      document.getElementById('chart').innerHTML = eq.map((v,i)=>{
+        const h = 200 - (Math.abs(v)/maxE)*150;
+        const c = v >= BAL ? 'var(--win)' : 'var(--loss)';
+        return `<div class="bar ${v<=BAL?'bar-loss':''}" style="height:Math.max(${h},15px);background:${c}"></div>`;
+      }).join('');
+
+      // Table
+      document.getElementById('tbody').innerHTML = trades.map(t=>{
+        const dir=t.direction===1?'Buy':'Sell';
+        const dClass=t.direction===1?'dir-buy':'dir-sell';
+        const bClass=t.profit>=0?'badge-win':'badge-loss';
+        const rr=calcRR(t.open_price,t.stop_loss,t.take_price||t.take_profit);
+        return `<tr>
+          <td>${formatDate(t.time)}</td>
+          <td>${t.symbol||'XAUUSD'}</td>
+          <td class="${dClass}">${dir}</td>
+          <td>${t.open_price}</td>
+          <td>${t.stop_loss}</td>
+          <td>${t.take_profit}</td>
+          <td>${t.size}</td>
+          <td class="${t.profit>=0?'text-success':'text-danger'}">${t.profit.toFixed(2)}</td>
+          <td><span class="${bClass}">${rr}x</span></td>
+          <td>${t.notes||'-'}</td>
+        </tr>`;
+      }).reverse().join('');
+
+      // Profit Distribution
+      const distWins = wins; const distLoss = losses;
+      document.getElementById('dist').innerHTML = `<div style="display:flex;align-items:center;gap:12px">
+        <div style="flex:1"><span style="color:var(--win)">${distWins} Wins</span></div>
+        <div style="flex:1;background:var(--border);height:12px;border-radius:6px;overflow:hidden;position:relative;width:100%">
+          <div style="position:absolute;top:0;left:0;bottom:0;width:${(distWins/(wins+losses||1))*100}%;background:var(--win)"></div>
+        </div>
+        <div style="flex:1;text-align:right;color:var(--loss)">${distLoss} Losses</div>
+      </div>`;
+    }
+
     function handleFile(f){
       const r=new FileReader();
       r.onload=e=>{
         let data=e.target.result;
         if(f.name.endsWith('.csv')){
-          data=e.target.result.trim().split('\n').slice(1).map(l=>{const p=l.split(',');return{time:Date.parse(p[0].replace(/\//g,'-')),symbol:p[1],direction:p[2]==='Buy'?1:-1,open_price:+p[3],stop_loss:+p[4],take_profit:+p[5],size:+p[6],profit:+p[7]||0}});
+          data=e.target.result.trim().split('\n').slice(1).map(l=>{
+            const p=l.split(',');
+            return{time:Date.parse(p[0].replace(/\//g,'-')),symbol:p[1],direction:p[2]==='Buy'?1:-1,open_price:+p[3],stop_loss:+p[4],take_price:+p[5],take_profit:+p[6],size:+p[7],profit:+p[8]||0,notes:p[9]||''};
+          });
         }else if(f.name.endsWith('.json')){
           data=JSON.parse(e.target.result);
+        }else if(f.name.endsWith('.xlsx')){
+          // Basic xlsx via SheetJS fallback
+          data=[];
         }
         data.forEach(t=>trades.push(t));
-        trades=trades.slice(-500);
+        trades=[...new Map(trades.map(t=>[Object.keys(t).join(','),t])).values()].slice(-500);
         localStorage.setItem('sualih-trades',JSON.stringify(trades));
         render();
       };
       r.readAsText(f);
     }
-    
-    document.getElementById('dz').addEventListener('click',()=>document.getElementById('fl').click());
-    document.getElementById('dz').addEventListener('dragover',e=>{e.preventDefault();e.target.classList.add('drag')});
-    document.getElementById('dz').addEventListener('dragleave',()=>e.target.classList.remove('drag'));
+
+    document.getElementById('dz').addEventListener('click',()=>document.getElementById('fileInput').click());
+    document.getElementById('dz').addEventListener('dragover',e=>{e.preventDefault();document.getElementById('dz').classList.add('drag')});
+    document.getElementById('dz').addEventListener('dragleave',()=>document.getElementById('dz').classList.remove('drag'));
     document.getElementById('dz').addEventListener('drop',e=>{e.preventDefault();document.getElementById('dz').classList.remove('drag');handleFile(e.dataTransfer.files[0])});
-    document.getElementById('fl').addEventListener('change',e=>{if(e.target.files[0])handleFile(e.target.files[0])});
-    
-    function exportData(){
+    document.getElementById('fileInput').addEventListener('change',e=>{if(e.target.files[0])handleFile(e.target.files[0])});
+
+    function exportCSV(){
+      const hdr = 'Date,Symbol,Dir,Entry,SL,TP,Size,P&L,RR,Notes\n';
+      const rows = trades.map(t=>`${formatDate(t.time)},${t.symbol||'XAUUSD'},${t.direction===1?'Buy':'Sell'},${t.open_price},${t.stop_loss},${t.take_profit||t.take_price},${t.size},${t.profit.toFixed(2)},${calcRR(t.open_price,t.stop_loss,t.take_price||t.take_profit)},${t.notes||''}`).join('\n');
+      const blob=new Blob([hdr+rows],{type:'text/csv'});
+      const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='sualih-trades.csv';a.click();
+    }
+
+    function exportJSON(){
       const blob=new Blob([JSON.stringify(trades,null,2)],{type:'application/json'});
-      const a=document.createElement('a');
-      a.href=URL.createObjectURL(blob);
-      a.download='sualih-trades.json';
-      a.click();
+      const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='sualih-trades.json';a.click();
+    }
+
+    function exportPDF(){
+      alert('PDF export requires additional library. Use CSV/JSON export instead.');
+    }
+
+    function clearAll(){if(confirm('Clear all trades?')){trades=[];localStorage.removeItem('sualih-trades');render()}}
+
+    function filterTable(){
+      const filter=document.getElementById('symbolFilter').value.trim();
+      document.getElementById('tbody').innerHTML = (filter?trades.filter(t=>t.symbol===filter):trades).map(t=>{
+        const dir=t.direction===1?'Buy':'Sell';
+        return `<tr><td>${formatDate(t.time)}</td><td>${t.symbol}</td><td>${dir}</td><td>${t.open_price}</td><td>${t.stop_loss}</td><td>${t.take_price||t.take_profit}</td><td>${t.size}</td><td>${t.profit.toFixed(2)}</td><td>${calcRR(t.open_price,t.stop_loss,t.take_price||t.take_profit)}x</td><td>${t.notes}</td></tr>`;
+      }).reverse().join('');
     }
     
-    function clearAll(){
-      if(confirm('Clear all trades?')){trades=[];localStorage.removeItem('sualih-trades');render();}
-    }
-    
-    // WEBHOOK ENDPOINT (for mt5-webhook)
-    // URL: https://sualih7.github.io/sualih-journal/webhook
-    window.handleWebhook = function(data){
-      const incoming=JSON.parse(data);
-      if(Array.isArray(incoming)){
-        incoming.forEach(t=>trades.push(t));
-        trades=[...new Set(trades.map(t=>t.time+t.symbol))].slice(-500);
-        localStorage.setItem('sualih-trades',JSON.stringify(trades));
-        render();
-      }
-    };
-    
+    initTheme();
     render();
+    // Keyboard shortcuts
+    document.addEventListener('keydown',e=>{
+      if(e.ctrlKey && e.key==='e'){e.preventDefault();exportCSV();}
+      if(e.ctrlKey && e.key==='c'){e.preventDefault();clearAll();}
+    });
   </script>
 </body>
 </html>
