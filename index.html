@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sualih Journal</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    :root{
+      --bg:#0a0a0f;
+      --card:#131318;
+      --accent:#00d4ff;
+      --text:#e0e0e0;
+      --muted:#888;
+      --win:#04c49c;
+      --loss:#ff4757;
+      --grid:#1f1f24;
+    }
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{
+      font-family:system-ui,Arial, sans-serif;
+      background:linear-gradient(135deg,#0a0a0f 0%,#151520 100%);
+      color:var(--text);
+      min-height:100vh;
+      overflow-x:hidden;
+    }
+    a{color:var(--accent);text-decoration:none}
+    .container{max-width:1400px;margin:0 auto;padding:24px}
+    h1{
+      font-size:2.2rem;
+      margin-bottom:24px;
+      background:linear-gradient(90deg,rgba(0,212,255,1),rgba(74,74,255,1));
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+      background-clip:text;
+    }
+    h2{color:var(--muted);font-size:1rem;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+    .grid{display:grid;gap:24px}
+    
+    /* Animated Cards */
+    .card{
+      background:var(--card);
+      border-radius:16px;
+      padding:24px;
+      box-shadow:0 4px 20px rgba(0,0,0,.3);
+      transition:transform .3s ease,box-shadow .3s ease;
+    }
+    .card:hover{
+      transform:translateY(-4px);
+      box-shadow:0 8px 30px rgba(0,0,0,.45);
+    }
+    
+    /* Stats Grid */
+    .stats{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+      gap:16px;
+    }
+    .stat{
+      background:var(--grid);
+      padding:20px;
+      border-radius:12px;
+      text-align:center;
+      transition:transform .2s;
+    }
+    .stat:hover{transform:scale(1.03)}
+    .stat-value{
+      color:var(--accent);
+      font-size:1.6rem;
+      font-weight:bold;
+      margin-bottom:4px;
+    }
+    .stat-label{
+      color:var(--muted);
+      font-size:.8rem;
+    }
+    
+    /* Animated Progress Bar */
+    .progress-bar{
+      height:8px;
+      background:var(--grid);
+      border-radius:4px;
+      overflow:hidden;
+      margin-top:12px;
+    }
+    .progress-fill{
+      height:100%;
+      background:linear-gradient(90deg,var(--win),var(--accent));
+      width:0;
+      transition:width 1.2s cubic-bezier(.25,.8,.25,1);
+    }
+    
+    /* Trades Table */
+    .trades{
+      border-collapse:collapse;
+      width:100%;
+      font-size:.9rem;
+    }
+    .trades th,.trades td{
+      padding:12px 8px;
+      border-bottom:1px solid var(--grid);
+      text-align:left;
+    }
+    .trades th{
+      background:var(--grid);
+      color:var(--accent);
+      position:sticky;top:0;
+    }
+    .trades tr:hover{
+      background:rgba(0,212,255,.05);
+    }
+    .pos-positive{color:var(--win)}
+    .pos-negative{color:var(--loss)}
+    .badge{
+      padding:4px 10px;
+      border-radius:20px;
+      font-size:.75rem;
+      font-weight:bold;
+    }
+    .badge-win{background:rgba(4,196,156,.15);color:var(--win)}
+    .badge-loss{background:rgba(255,71,87,.15);color:var(--loss)}
+    .badge-flat{background:rgba(255,193,7,.15);color:#ffc107}
+    
+    /* Animated Dropzone */
+    .dropzone{
+      border:2px dashed var(--accent);
+      border-radius:12px;
+      padding:40px;
+      text-align:center;
+      color:var(--muted);
+      cursor:pointer;
+      transition:all .3s ease;
+    }
+    .dropzone.dragover{
+      border-color:var(--accent);
+      background:rgba(0,212,255,.05);
+      transform:scale(1.02);
+    }
+    .dropzone input{display:none}
+    
+    /* Profit Chart */
+    .profit-chart{
+      height:200px;
+      display:flex;
+      align-items:flex-end;
+      gap:4px;
+      padding:4px 0;
+    }
+    .profit-bar{
+      flex:1;
+      background:var(--accent);
+      transition:height .4s cubic-bezier(.25,.8,.25,1);
+      border-radius:4px 4px 0 0;
+    }
+    .profit-bar.negative{background:var(--loss)}
+    
+    /* Button */
+    button{
+      background:linear-gradient(135deg,rgba(0,212,255,.9),rgba(74,74,255,.9));
+      color:#000;
+      border:none;
+      padding:10px 20px;
+      border-radius:8px;
+      cursor:pointer;
+      font-weight:bold;
+      transition:opacity .2s;
+    }
+    button:hover{opacity:.9}
+    
+    /* Sidebar Toggle */
+    .sidebar-toggle{
+      position:fixed;
+      top:20px;
+      right:20px;
+      z-index:1000;
+    }
+    .sidebar{
+      position:fixed;
+      top:0;
+      right:-280px;
+      width:280px;
+      height:100vh;
+      background:var(--card);
+      box-shadow:-4px 0 20px rgba(0,0,0,.4);
+      transition:right .4s ease;
+      padding:24px;
+      z-index:999;
+    }
+    .sidebar.open{right:0}
+    .sidebar h3{margin-bottom:16px;color:var(--accent);font-size:1.1rem}
+    .sidebar a{display:block;padding:12px 0;border-bottom:1px solid var(--grid);color:var(--text)}
+    .sidebar a:hover{color:var(--accent)}
+    
+    /* Animated Icons */
+    .icon{
+      display:inline-block;
+      transition:transform .2s;
+    }
+    .icon:hover{transform:rotate(90deg)}
+  </style>
+</head>
+<body>
+  <!-- Animated Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <h3>📊 Sualih Journal</h3>
+    <a href="#import"><i class="icon fas fa-file-import"></i> Import Trades</a>
+    <a href="#stats"><i class="icon fas fa-chart-line"></i> Stats</a>
+    <a href="#trades"><i class="icon fas fa-list"></i> Trades</a>
+    <a href="#settings"><i class="icon fas fa-cog"></i> Settings</a>
+  </div>
+  
+  <div class="sidebar-toggle">
+    <button onclick="toggleSidebar()" style="width:50px;height:50px;border-radius:50%;background:var(--accent);color:#000;font-size:1rem"><i class="fas fa-bars"></i></button>
+  </div>
+  
+  <div class="container">
+    <h1>🪙 Sualih Journal</h1>
+    <h2>Gold & XAUUSD Trade Tracker • <span id="date"></span></h2>
+    
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-value" id="balance">$200.00</div>
+        <div class="stat-label">Balance</div>
+        <div class="progress-bar"><div class="progress-fill" style="width:0%"></div></div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="pnl">+$0.00</div>
+        <div class="stat-label">P&L (cycle)</div>
+        <div class="progress-bar"><div class="progress-fill" style="width:0%"></div></div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="winrate">0%</div>
+        <div class="stat-label">Win Rate</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="rr">0.00</div>
+        <div class="stat-label">Profit Factor</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="trades">0</div>
+        <div class="stat-label">Total Trades</div>
+      </div>
+    </div>
+
+    <div style="margin-top:24px;display:grid;gap:24px">
+      <div class="card" id="import">
+        <h2 style="margin-bottom:16px">📁 Import MT5 Trades</h2>
+        <div class="dropzone" id="dropzone">
+          <div style="font-size:1.5rem;margin-bottom:8px;">📂</div>
+          <div>Drag & drop MT5 CSV file here</div>
+          <div style="color:var(--muted);font-size:.8rem;margin-top:8px;">or click to browse</div>
+          <input type="file" id="fileInput" accept=".csv"/>
+        </div>
+        <p style="margin-top:12px;color:var(--muted);font-size:.85rem">
+          Columns: <code>time, symbol, direction, open_price, stop_loss, take_profit, size, profit</code>
+        </p>
+      </div>
+
+      <div class="card" id="stats">
+        <h2 style="margin-bottom:16px">📊 Profit Curve</h2>
+        <div class="profit-chart" id="profitChart"></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:24px" id="trades">
+      <h2 style="margin-bottom:16px">📋 Trades</h2>
+      <table class="trades">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Symbol</th>
+            <th>Direction</th>
+            <th>Entry</th>
+            <th>SL</th>
+            <th>TP</th>
+            <th>Size</th>
+            <th>P&L</th>
+            <th>RR</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+    
+    <div class="card" style="margin-top:24px" id="settings">
+      <h2 style="margin-bottom:16px">⚙️ Settings</h2>
+      <p style="color:var(--muted);margin-bottom:12px">Initial Balance: <strong>$200</strong> (edit in code to change)</p>
+      <button onclick="exportData()">📥 Export JSON</button>
+      <button onclick="clearData()" style="margin-left:12px;background:#ff4757;color:#fff">🗑️ Clear All</button>
+    </div>
+  </div>
+
+  <script>
+    const INITIAL_BALANCE = 200;
+    let balance = INITIAL_BALANCE;
+    let trades = JSON.parse(localStorage.getItem('trades') || '[]');
+    
+    function formatDate(ts){
+      const d = new Date(ts);
+      return d.toLocaleString(undefined,{dateStyle:'short',timeStyle:'short'});
+    }
+    
+    function calcRR(p,entry,sl,tp){
+      const r = entry-sl;
+      const rtp = tp-entry;
+      return r===0?0:+(rtp/r).toFixed(2);
+    }
+    
+    function directionClass(d){return d===1?'pos-positive':'pos-negative'}
+    function badgeClass(profit){
+      if(profit>0)return 'badge-win';
+      if(profit<0)return 'badge-loss';
+      return 'badge-flat';
+    }
+    
+    function animateProgress(el,val){
+      el.style.width = '0%';
+      setTimeout(()=>{el.style.width = Math.min(val,100)+'%';},50);
+    }
+    
+    function render(){
+      let pnl = 0, wins=0, losses=0, totalRR=0;
+      const profitSeries = [];
+      
+      trades.forEach((t,i)=>{
+        pnl += t.profit;
+        if(t.profit>0)wins++;
+        else if(t.profit<0)losses++;
+        const rr = calcRR(t.open_price,t.stop_loss,t.take_profit);
+        totalRR += rr;
+        profitSeries.push({idx:i,profit:t.profit,cumulative:pnl});
+      });
+      
+      balance = INITIAL_BALANCE + pnl;
+      document.getElementById('balance').textContent = '$'+balance.toFixed(2);
+      document.getElementById('pnl').textContent = (pnl>=0?'+':'') + pnl.toFixed(2);
+      document.getElementById('trades').textContent = trades.length;
+      
+      const winrate = trades.length ? Math.round(wins/trades.length*100) : 0;
+      document.getElementById('winrate').textContent = winrate + '%';
+      document.getElementById('rr').textContent = (trades.length ? (totalRR/trades.length).toFixed(2) : '0.00');
+      
+      // Date
+      document.getElementById('date').textContent = new Date().toLocaleDateString(undefined,{weekday:'long',dateStyle:'long'});
+      
+      // Animate balance progress (as % of max possible)
+      animateProgress(document.querySelector('.stat:nth-child(1) .progress-fill'), Math.abs(pnl)/10*10);
+      animateProgress(document.querySelector('.stat:nth-child(2) .progress-fill'), Math.abs(pnl)/10*10);
+      
+      // Profit chart
+      const pc = document.getElementById('profitChart');
+      if(profitSeries.length){
+        const max = Math.max(...profitSeries.map(p=>Math.abs(p.cumulative)), Math.abs(INITIAL_BALANCE), 1);
+        pc.innerHTML = profitSeries.map(p=>{
+          const h = Math.abs(p.cumulative)/max*160 + 20;
+          const c = p.profit>=0?'var(--win)':'var(--loss)';
+          return `<div class="profit-bar ${p.profit<0?'negative':''}" style="height:${h}px;background:${c}"></div>`;
+        }).reverse().join('');
+      }else{
+        pc.innerHTML = '<div style="color:var(--muted);text-align:center;line-height:200px;">No trades yet — import a CSV to get started</div>';
+      }
+      
+      // Table
+      document.getElementById('tbody').innerHTML = trades.map(t=>{
+        const dir = t.direction===1?'Buy':'Sell';
+        const sym = t.symbol||'XAUUSD';
+        return `<tr>
+          <td>${formatDate(t.time)}</td>
+          <td>${sym}</td>
+          <td class="${directionClass(t.direction)}">${dir}</td>
+          <td>${t.open_price}</td>
+          <td>${t.stop_loss}</td>
+          <td>${t.take_profit}</td>
+          <td>${t.size}</td>
+          <td class="${directionClass(t.profit)}">${t.profit.toFixed(2)}</td>
+          <td>${calcRR(t.open_price,t.stop_loss,t.take_profit)}x</td>
+          <td><span class="badge ${badgeClass(t.profit)}">${t.notes||'-'}</span></td>
+        </tr>`;
+      }).reverse().join('');
+    }
+    
+    // CSV Parser (MT5 compatible)
+    function parseCSV(text){
+      const lines = text.trim().split('\n');
+      const res = [];
+      for(let i=1;i<lines.length;i++){
+        const p = lines[i].split(',');
+        res.push({
+          time: Date.parse(p[0].replace(/\//g,'-')),
+          symbol: p[1]||'XAUUSD',
+          direction: p[2]==='Buy'?1:-1,
+          open_price:+(p[3]||0),
+          stop_loss:+(p[4]||0),
+          take_profit:+(p[5]||0),
+          size:+(p[6]||0),
+          profit:+(p[7]||0),
+          notes:''
+        });
+      }
+      return res;
+    }
+    
+    // Sidebar toggle
+    function toggleSidebar(){
+      document.getElementById('sidebar').classList.toggle('open');
+    }
+    document.addEventListener('click',e=>{
+      if(!e.target.closest('.sidebar') && !e.target.closest('.sidebar-toggle')){
+        document.getElementById('sidebar').classList.remove('open');
+      }
+    });
+    
+    // Dropzone events
+    const dz = document.getElementById('dropzone');
+    dz.addEventListener('click',()=>document.getElementById('fileInput').click());
+    dz.addEventListener('dragover',e=>{
+      e.preventDefault();
+      dz.classList.add('dragover');
+    });
+    dz.addEventListener('dragleave',()=>dz.classList.remove('dragover'));
+    dz.addEventListener('drop',e=>{
+      e.preventDefault();dz.classList.remove('dragover');
+      if(e.dataTransfer.files[0])handleFile(e.dataTransfer.files[0]);
+    });
+    document.getElementById('fileInput').addEventListener('change',e=>{
+      if(e.target.files[0])handleFile(e.target.files[0]);
+    });
+    
+    function handleFile(file){
+      const r = new FileReader();
+      r.onload = e=>{
+        const parsed = parseCSV(e.target.result);
+        trades.push(...parsed);
+        trades = trades.slice(-500);
+        localStorage.setItem('trades',JSON.stringify(trades));
+        render();
+      };
+      r.readAsText(file);
+    }
+    
+    function exportData(){
+      const blob = new Blob([JSON.stringify(trades,null,2)],{type:'application/json'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'sualih-trades.json';
+      a.click();
+    }
+    
+    function clearData(){
+      if(confirm('Clear all trades?')){
+        trades = [];
+        localStorage.removeItem('trades');
+        render();
+      }
+    }
+    
+    render();
+  </script>
+</body>
+</html>
