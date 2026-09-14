@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Sualih Journal</title>
+  <meta name="theme-color" content="#00d4ff">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root{--bg:#020617;--surface:#0f172a;--card:#111827;--border:#1e293b;--accent:#00d4ff;--win:#04c49c;--loss:#ff4757;--text:#e2e8f0;--muted:#94a3b8;--shadow:0 8px 32px rgba(0,0,0,.4);--glass:rgba(255,255,255,.05)}
+    *[data-theme="light"]{--bg:#f8fafc;--surface:#eff6ff;--card:#ffffff;--border:#cbd5e1;--text:#0f172a;--muted:#64748b;--win:#059669;--loss:#dc2626;--shadow:0 4px 12px rgba(0,0,0,.1);--glass:rgba(255,255,255,.6)}
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Inter','Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+    .glass{background:var(--glass);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.1);border-radius:16px}
+    .container{max-width:1400px;margin:0 auto;padding:24px}
+    .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;padding:16px 0;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:12px}
+    .logo{font-size:1.8rem;font-weight:700;background:linear-gradient(90deg,var(--accent),#4a4aff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    .nav{display:flex;gap:20px;align-items:center}
+    .nav a{color:var(--muted);text-decoration:none;font-weight:500;transition:.2s}.nav a:hover{color:var(--accent)}
+    .theme-toggle{background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--muted)}
+    .balance-card{background:var(--card);border-radius:16px;padding:24px;box-shadow:var(--shadow);text-align:center;margin-bottom:20px}
+    .balance{background:linear-gradient(90deg,var(--accent),#4a4aff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-size:2rem;font-weight:700}
+    .pnl-positive{color:var(--win)}.pnl-negative{color:var(--loss)}
+    .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px}
+    .stat{background:var(--card);border-radius:12px;padding:16px;text-align:center;box-shadow:var(--shadow)}
+    .stat-value{font-size:1.4rem;font-weight:600}.stat-label{font-size:.75rem;color:var(--muted)}
+    .grid{display:grid;gap:20px}.left{flex:2}.right{flex:1}
+    .card{background:var(--card);border-radius:12px;padding:20px;box-shadow:var(--shadow)}.card h2{font-size:1rem;font-weight:600;margin-bottom:12px;color:var(--accent)}.card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+    .dropzone{border:2px dashed var(--accent);border-radius:12px;padding:32px;text-align:center;color:var(--muted);cursor:pointer;transition:.3s}.dropzone:hover,.dropzone.drag{border-color:var(--accent);background:var(--glass)}
+    .table{width:100%;border-collapse:collapse;font-size:.85rem}.table th,.table td{padding:10px 8px;border-bottom:1px solid var(--border)}.table th{background:var(--surface);color:var(--accent);font-weight:500;text-transform:uppercase;letter-spacing:.5px}.table tr:hover{background:rgba(0,212,255,.05)}
+    .dir-buy{color:var(--win)}.dir-sell{color:var(--loss)}.badge{font-size:.7rem;padding:4px 10px;border-radius:20px;font-weight:500}.badge-win{background:rgba(4,196,156,.15);color:var(--win)}.badge-loss{background:rgba(255,71,87,.15);color:var(--loss)}
+    .chart-card{background:var(--card);border-radius:12px;padding:20px;box-shadow:var(--shadow)}.chart-container{position:relative;height:200px}
+    .coach-card{background:var(--card);border-radius:12px;padding:20px;box-shadow:var(--shadow);margin-top:20px}.coach-item{background:var(--surface);border-left:4px solid var(--coach);padding:12px;margin-bottom:12px;border-radius:0 8px 8px 0}
+    .coach-title{font-weight:600;color:var(--coach);margin-bottom:4px}.coach-text{font-size:.9rem;color:var(--muted)}.alert{font-size:.8rem;color:var(--muted)}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="logo">🪙 <span>Sualih Journal</span></div>
+      <div class="nav">
+        <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
+        <button onclick="lockScreen()">🔒</button>
+      </div>
+    </div>
+
+    <div class="balance-card glass">
+      <h3 style="color:var(--muted);margin-bottom:8px">Balance: $200.00</h3>
+      <div class="balance value" id="bal">$200.00</div>
+      <p style="margin-top:8px;font-size:.9rem"><span class="pnl-${pnl>=0?'positive':'negative'}" id="pnl-sign"></span><span id="pnl">+$0.00</span> (<span id="pct">0%</span>)</p>
+    </div>
+
+    <div class="stats">
+      <div class="stat glass"><div class="stat-value" id="pl">+$0.00</div><div class="stat-label">P&L</div></div>
+      <div class="stat glass"><div class="stat-value" id="wr">0%</div><div class="stat-label">Win Rate</div></div>
+      <div class="stat glass"><div class="stat-value" id="pf">0.0x</div><div class="stat-label">Profit Factor</div></div>
+      <div class="stat glass"><div class="stat-value" id="rr">0.00x</div><div class="stat-label">Avg RR</div></div>
+      <div class="stat glass"><div class="stat-value" id="total">0</div><div class="stat-label">Trades</div></div>
+    </div>
+
+    <div class="grid">
+      <div class="left">
+        <div class="card glass"><div class="card-header"><h2>📁 Import Trades</h2><input type="file" id="fileInput" accept=".csv,.json,.xlsx" style="display:none"></div>
+          <div class="dropzone" id="dz"><div style="font-size:2rem;margin-bottom:8px;">📂</div><div><strong>Drop MT5 CSV/JSON/XLSX</strong></div><p class="alert">or click anywhere</p></div>
+        </div>
+
+        <div class="card glass"><div class="card-header"><h2>📋 Trades</h2><select id="symbolFilter" onchange="filterTable()"><option value="">All</option><option value="XAUUSD">XAUUSD</option></select></div>
+          <table class="table"><thead><tr><th>Date</th><th>Symbol</th><th>Dir</th><th>Entry</th><th>SL</th><th>TP</th><th>Size</th><th>P&L</th><th>RR</th><th>Notes</th></tr></thead><tbody id="tbody"></tbody></table>
+        </div>
+
+        <div class="card glass"><h2>🧠 Trade Coach AI</h2><div id="coachContent"></div></div>
+      </div>
+
+      <div class="right">
+        <div class="card glass"><h2>📊 Equity Curve</h2>
+          <div class="chart-container"><canvas id="equityChart"></canvas></div>
+          <div style="display:flex;justify-content:space-between;text-align:center"><div><div id="chartStart">$200</div><div class="alert">Start</div></div><div><div id="chartEnd">$200</div><div class="alert">End</div></div></div>
+        </div>
+
+        <div class="card glass"><h2>⚙️ Tools</h2>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button onclick="exportCSV()">📥 CSV</button>
+            <button onclick="exportJSON()">📋 JSON</button>
+            <button onclick="lockScreen()">🔒 Lock</button>
+            <button onclick="clearAll()" style="background:#ff4757;color:#fff">🗑️ Clear</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const BAL = 200;
+    let trades = JSON.parse(localStorage.getItem('sualih-trades') || '[]');
+    let equityChart = null, passPrompt = '';
+
+    function formatDate(ts){return new Date(ts).toLocaleString(undefined,{dateStyle:'short',timeStyle:'short'})}
+    function calcRR(e,s,tp){const r=e-s, rw=tp-e; return r ? +(rw/r).toFixed(2) : 0}
+
+    function loadChart(){
+      const ctx = document.getElementById('equityChart').getContext('2d');
+      if(equityChart) equityChart.destroy();
+      let cum = BAL;
+      const labels = [], data = [];
+      trades.forEach(t=>{labels.push(new Date(t.time).toLocaleDateString()); cum+=t.profit; data.push(cum);});
+      if(data.length===0){data.push(BAL); labels.push('Today');}
+      equityChart = new Chart(ctx,{type:'line',data:{labels,datasets:[{label:'Equity',data,borderColor:'var(--accent)',backgroundColor:'rgba(0,212,255,.1)',tension:.3,fill:true,pointRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{grid:{color:'rgba(255,255,255,.1)'}}}});
+    }
+
+    function runAICoach(){
+      const coach = document.getElementById('coachContent');
+      if(trades.length < 3){ coach.innerHTML = '<p class="coach-item"><span class="coach-title">📊 Need Data</span><span class="coach-text">Add at least 3 trades for insights.</span></p>'; return;}
+      const pnl = trades.reduce((a,b)=>a+b.profit,0), wins = trades.filter(t=>t.profit>0).length, losses = trades.filter(t=>t.profit<0).length, avgRR = trades.reduce((a,b)=>a+calcRR(b.open_price,b.stop_loss,b.take_price||b.take_profit),0)/trades.length;
+      coach.innerHTML = `<div class="coach-item"><span class="coach-title">📈 P&L: ${pnl.toFixed(2)} (${(pnl/BAL*100).toFixed(1)}%)</span></div><div class="coach-item"><span class="coach-title">🎯 Win Rate: ${(wins/trades.length*100).toFixed(1)}%</span></div><div class="coach-item"><span class="coach-title">🧩 Avg RR: ${avgRR.toFixed(2)}x</span></div><div class="coach-item"><span class="coach-title">📊 ${wins} Wins / ${losses} Losses</span></div>`;
+    }
+
+    function render(){
+      let pnl=0,wins=0,losses=0;
+      trades.forEach(t=>{pnl+=t.profit; if(t.profit>0)wins++; else if(t.profit<0)losses++;});
+      document.getElementById('bal').textContent='$'+(BAL+pnl).toFixed(2);
+      document.getElementById('pnl').textContent=(pnl>=0?'+':'-')+Math.abs(pnl).toFixed(2);
+      document.getElementById('pnl-sign').textContent=(pnl>=0?'+':'-');
+      document.getElementById('pnl-sign').className='pnl-'+ (pnl>=0?'positive':'negative');
+      document.getElementById('pct').textContent=(pnl/BAL*100).toFixed(1)+'%';
+      document.getElementById('wr').textContent=trades.length?Math.round(wins/trades.length*100*10)/10+'%':'0%';
+      document.getElementById('pf').textContent=losses?Math.round(wins/Math.abs(losses)*100)/10+'x':'∞';
+      document.getElementById('rr').textContent=trades.length?((trades.reduce((a,b)=>a+calcRR(b.open_price,b.stop_loss,b.take_price||b.take_profit),0))/trades.length).toFixed(2)+'x':'0x';
+      document.getElementById('total').textContent=trades.length;
+      document.getElementById('chartStart').textContent='$'+BAL.toFixed(2);
+      document.getElementById('chartEnd').textContent='$'+(BAL+pnl).toFixed(2);
+      document.getElementById('tbody').innerHTML=trades.map(t=>{
+        const dir=t.direction===1?'Buy':'Sell', dClass=t.direction===1?'dir-buy':'dir-sell', bClass=t.profit>=0?'badge-win':'badge-loss';
+        return `<tr><td>${formatDate(t.time)}</td><td>${t.symbol||'XAUUSD'}</td><td class="${dClass}">${dir}</td><td>${t.open_price}</td><td>${t.stop_loss}</td><td>${t.take_price||t.take_profit}</td><td>${t.size}</td><td>${t.profit.toFixed(2)}</td><td><span class="${bClass}">${calcRR(t.open_price,t.stop_loss,t.take_price||t.take_profit)}x</span></td><td>${t.notes||'-'}</td></tr>`;
+      }).reverse().join('');
+      loadChart(); runAICoach();
+    }
+
+    function handleFile(f){
+      const r = new FileReader();
+      r.onload = e => {
+        let data = e.target.result;
+        if(f.name.endsWith('.csv'))data = data.trim().split('\n').slice(1).map(l=>{const p=l.split(',');return{time:Date.parse(p[0].replace(/\//g,'-')),symbol:p[1],direction:p[2]==='Buy'?1:-1,open_price:+p[3],stop_loss:+p[4],take_price:+p[5]||+p[6],take_profit:+p[6]||+p[5],size:+p[7],profit:+p[8]||0,notes:p[9]||''}});
+        else if(f.name.endsWith('.json'))data = JSON.parse(data);
+        else if(f.name.endsWith('.xlsx'))data = [];
+        data.forEach(t=>trades.push(t));
+        const seen={}, filtered=[];
+        trades.forEach(t=>{if(!seen[t.time]){ seen[t.time]=true; filtered.push(t); }});
+        trades = filtered.slice(-500);
+        localStorage.setItem('sualih-trades', JSON.stringify(trades));
+        render();
+      };
+      r.readAsText(f);
+    }
+
+    // Event Listeners
+    document.getElementById('dz').addEventListener('click',()=>document.getElementById('fileInput').click());
+    document.getElementById('dz').addEventListener('dragover',e=>{e.preventDefault();document.getElementById('dz').classList.add('drag')});
+    document.getElementById('dz').addEventListener('dragleave',()=>document.getElementById('dz').classList.remove('drag'));
+    document.getElementById('dz').addEventListener('drop',e=>{e.preventDefault();document.getElementById('dz').classList.remove('drag');handleFile(e.dataTransfer.files[0])});
+    document.getElementById('fileInput').addEventListener('change',e=>{if(e.target.files[0])handleFile(e.target.files[0])});
+
+    // Utilities
+    function exportCSV(){
+      const hdr='Date,Symbol,Dir,Entry,SL,TP,Size,P&L,RR,Notes\n', rows=trades.map(t=>`${formatDate(t.time)},${t.symbol||'XAUUSD'},${t.direction===1?'Buy':'Sell'},${t.open_price},${t.stop_loss},${t.take_price||t.take_profit},${t.size},${t.profit.toFixed(2)},${calcRR(t.open_price,t.stop_loss,t.take_price||t.take_profit)},${t.notes||''}`).join('\n');
+      const blob=new Blob([hdr+rows],{type:'text/csv'});
+      const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='sualih-trades.csv';a.click();
+    }
+    function exportJSON(){
+      const blob=new Blob([JSON.stringify(trades,null,2)],{type:'application/json'});
+      const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='sualih-trades.json';a.click();
+    }
+    function clearAll(){if(confirm('Clear all trades?')){trades=[];localStorage.removeItem('sualih-trades');render();}}
+    function filterTable(){
+      const filter=document.getElementById('symbolFilter').value.trim();
+      document.getElementById('tbody').innerHTML=(filter?trades.filter(t=>t.symbol===filter):trades).map(t=>{
+        const dir=t.direction===1?'Buy':'Sell';
+        return `<tr><td>${formatDate(t.time)}</td><td>${t.symbol}</td><td>${dir}</td><td>${t.open_price}</td><td>${t.stop_loss}</td><td>${t.take_price||t.take_profit}</td><td>${t.size}</td><td>${t.profit.toFixed(2)}</td><td>${calcRR(t.open_price,t.stop_loss,t.take_price||t.take_profit)}x</td><td>${t.notes}</td></tr>`;
+      }).reverse().join('');
+    }
+    function toggleTheme(){
+      const html=document.documentElement, isLight=html.getAttribute('data-theme')==='light';
+      html.setAttribute('data-theme', isLight?'dark':'light'); localStorage.setItem('sualih-theme', isLight?'dark':'light');
+      document.querySelector('.theme-toggle').textContent = isLight ? '☀️' : '🌙';
+    }
+    function lockScreen(){
+      passPrompt='';
+      const overlay=document.createElement('div');
+      overlay.id='lockOverlay';
+      overlay.style.cssText='position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.8);display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:9999';
+      overlay.innerHTML = `<input type="password" id="lockInput" placeholder="Password" style="padding:12px;border-radius:8px;border:none;margin-bottom:12px"><button onclick="const v=document.getElementById('lockInput').value;if(v==passPrompt||!passPrompt){passPrompt=v;document.body.style.filter='blur(0)';document.getElementById('lockOverlay').remove()} else{alert('Wrong password')}">Unlock</button>`;
+      document.body.appendChild(overlay);
+    }
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt',e=>{deferredPrompt=e;e.preventDefault();document.getElementById('installPrompt').style.display='block'});
+    function installApp(){if(deferredPrompt){deferredPrompt.prompt();deferredPrompt.userChoice.then(()=>document.getElementById('installPrompt').style.display='none');}}
+    document.addEventListener('DOMContentLoaded',()=>{render();document.querySelector('.theme-toggle').textContent = document.documentElement.getAttribute('data-theme')==='light' ? '🌙' : '☀️';});
+    document.addEventListener('keydown',e=>{if(e.ctrlKey && e.key==='e'){e.preventDefault();exportCSV();} if(e.ctrlKey && e.key==='j'){e.preventDefault();lockScreen();}});
+  </script>
+</body>
+</html>
