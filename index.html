@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Sualih Journal - Premium Trade Tracker</title>
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<style>
+:root{
+  --bg:#0a0a0f;--card:#131318;--accent:#00d4ff;--win:#04c49c;--loss:#ff4757;
+  --text:#e0e0e0;--muted:#888;--border:#1e1e22;--glass:rgba(255,255,255,.05);
+  --shadow:0 8px 32px rgba(0,0,0,.4)
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',Arial,sans-serif;background:linear-gradient(135deg,#0a0a0f 0%,#151520 50%,#0a0a0f 100%);color:var(--text);min-height:100vh;overflow-x:hidden}
+.container{max-width:1200px;margin:0 auto;padding:20px}
+h1{font-size:2.2rem;margin-bottom:10px;background:linear-gradient(90deg,var(--accent),#4a4aff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.stats{display:flex;gap:15px;flex-wrap:wrap;margin-bottom:20px}
+.stat{background:var(--card);border-radius:12px;padding:20px;text-align:center;box-shadow:var(--shadow);transition:transform .3s}
+.stat:hover{transform:translateY(-5px)}
+.stat-value{font-size:1.6rem;font-weight:700;background:linear-gradient(90deg,var(--accent),#4a4aff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.stat-label{font-size:.8rem;color:var(--muted)}
+.btn{background:var(--accent);color:#000;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;font-weight:600;transition:opacity .2s;margin:5px}.btn:hover{opacity:.9}.btn-danger{background:var(--loss);color:#fff}
+.modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.8);align-items:center;justify-content:center;z-index:1000}
+.modal.active{display:flex}
+.modal-content{background:var(--card);border-radius:12px;padding:25px;width:90%;max-width:400px;box-shadow:var(--shadow)}
+.close{float:right;background:none;border:none;font-size:24px;cursor:pointer;color:var(--loss);font-weight:bold}
+.input-group{margin-bottom:15px}
+.input-group input,.input-group select,.input-group textarea{
+  width:100%;padding:10px;border:1px solid var(--border);border-radius:6px;
+  background:var(--bg);color:var(--text);font-size:14px
+}
+.input-group textarea{min-height:60px;resize:vertical}
+.table-container{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{padding:12px 10px;border-bottom:1px solid var(--border)}
+th{background:var(--surface);color:var(--accent);font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+tr:hover{background:rgba(0,212,255,.05)}
+.progress-bar{height:10px;background:var(--border);border-radius:5px;overflow:hidden;margin-top:10px}
+.progress-fill{height:100%;background:var(--win);width:0%;transition:width .5s}
+@keyframes fadeIn {0%{opacity:0;transform:translateY(-20px)}100%{opacity:1;transform:translateY(0)}}
+.fade-in{animation:fadeIn .4s ease-out}
+</style>
+</head>
+<body>
+<div class="container fade-in">
+  <h1>🪙 Sualih Journal</h1>
+  <p style="color:var(--muted);margin-bottom:20px">Professional Trade Management</p>
+  
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-value" id="balance">$200.00</div>
+      <div class="stat-label">Balance</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value" id="profit">+$0.00</div>
+      <div class="stat-label">P&L</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value" id="trades">0</div>
+      <div class="stat-label">Total Trades</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value" id="winrate">0%</div>
+      <div class="stat-label">Win Rate</div>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:20px;flex-wrap:wrap;margin-bottom:20px">
+    <button class="btn" onclick="openAddModal()">➕ Add Entry</button>
+    <button class="btn" onclick="exportCSV()">📥 Export CSV</button>
+    <button class="btn" onclick="exportJSON()">📋 Export JSON</button>
+  </div>
+
+  <div class="card" style="margin-bottom:20px">
+    <h2 style="color:var(--accent);margin-bottom:15px">📁 Import Trades</h2>
+    <div id="dropzone" style="border:2px dashed var(--accent);border-radius:12px;padding:40px;text-align:center;color:var(--muted);cursor:pointer;transition:.3s">
+      <div style="font-size:2rem;margin-bottom:12px;">📂</div>
+      <h3 style="margin:0 0 10px 0">Drag & Drop JSON/CSV or Click</h3>
+      <p style="font-size:.85rem;color:var(--muted)">Supports MT5 exports • Up to 500 trades</p>
+    </div>
+    <input type="file" id="fileInput" style="display:none" accept=".json,.csv">
+  </div>
+
+  <div class="card">
+    <h2 style="color:var(--accent);margin-bottom:15px">📊 Trades</h2>
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th><th>Symbol</th><th>Direction</th>
+            <th>Entry</th><th>Stop Loss</th><th>Take Profit</th>
+            <th>Size</th><th>P&L</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div id="addModal" class="modal">
+  <div class="modal-content fade-in">
+    <span class="close" onclick="closeModal()">&times;</span>
+    <h2 style="color:var(--accent);margin-bottom:20px">➕ Add New Trade</h2>
+    <form>
+      <div class="input-group">
+        <label style="font-size:.8rem;color:var(--muted)">Date & Time</label>
+        <input type="datetime-local" id="tradeDate" required>
+      </div>
+      <div class="input-group">
+        <label style="font-size:.8rem;color:var(--muted)">Symbol</label>
+        <input type="text" id="tradeSymbol" value="XAUUSD">
+      </div>
+      <div class="input-group">
+        <label style="font-size:.8rem;color:var(--muted)">Direction</label>
+        <select id="tradeDirection">
+          <option value="1" selected>Buy ✅</option>
+          <option value="-1">Sell ✅</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:10px">
+        <div style="flex:1">
+          <label style="font-size:.8rem;color:var(--muted)">Entry Price</label>
+          <input type="number" step="0.01" id="tradeEntry" required>
+        </div>
+        <div style="flex:1">
+          <label style="font-size:.8rem;color:var(--muted)">Size</label>
+          <input type="number" step="0.01" id="tradeSize" value="1">
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:15px">
+        <div style="flex:1">
+          <label style="font-size:.8rem;color:var(--muted)">Stop Loss</label>
+          <input type="number" step="0.01" id="tradeSL" required>
+        </div>
+        <div style="flex:1">
+          <label style="font-size:.8rem;color:var(--muted)">Take Profit</label>
+          <input type="number" step="0.01" id="tradeTP" required>
+        </div>
+      </div>
+      <div class="input-group" style="margin-top:15px">
+        <label style="font-size:.8rem;color:var(--muted)">Notes (Optional)</label>
+        <textarea id="tradeNotes" placeholder="Add notes about this trade..."></textarea>
+      </div>
+      <button type="submit" class="btn" style="width:100%;margin-top:10px" onclick="saveTrade(event)">💾 Save Trade</button>
+    </form>
+  </div>
+</div>
+
+<script>
+let trades = JSON.parse(localStorage.getItem('sualih-trades') || '[]');
+const BAL = 200;
+
+function formatDate(ts){
+  return new Date(Number(ts)).toLocaleString();
+}
+
+function calculatePnl(t){
+  const {direction, open_price, stop_loss, take_price, size} = t;
+  if(direction === 1){
+    return (take_price - open_price) * size;
+  } else {
+    return (open_price - take_price) * size;
+  }
+}
+
+function calculateRR(t){
+  const {direction, open_price, stop_loss, take_price} = t;
+  const risk = Math.abs(open_price - stop_loss);
+  const reward = Math.abs(take_price - open_price);
+  return risk > 0 ? (reward / risk).toFixed(2) : '0';
+}
+
+function render(){
+  const pnl = trades.reduce((sum, t) => sum + calculatePnl(t), 0);
+  const winRate = trades.length > 0 ? (trades.filter(t => calculatePnl(t) > 0) / trades.length * 100).toFixed(1) : 0;
+  
+  document.getElementById('balance').textContent = '$' + (BAL + pnl).toFixed(2);
+  document.getElementById('profit').textContent = (pnl >= 0 ? '+' : '') + pnl.toFixed(2);
+  document.getElementById('trades').textContent = trades.length;
+  document.getElementById('winrate').textContent = trades.length > 0 ? winRate + '%' : '0%';
+  
+  document.getElementById('tbody').innerHTML = trades.map((t, i) => {
+    const pnl = calculatePnl(t);
+    const dir = t.direction === 1 ? 'Buy ✅' : 'Sell ✅';
+    return `
+      <tr class="fade-in" style="animation-delay:${i * 0.05}s">
+        <td>${formatDate(t.time)}</td>
+        <td>${t.symbol || 'XAUUSD'}</td>
+        <td class="${t.direction === 1 ? 'dir-buy' : 'dir-sell'}">${dir}</td>
+        <td>${t.open_price}</td>
+        <td>${t.stop_loss}</td>
+        <td>${t.take_price}</td>
+        <td>${t.size}</td>
+        <td class="${pnl >= 0 ? 'pnl-positive' : 'pnl-negative'}">${pnl.toFixed(2)}</td>
+      </tr>
+    `;
+  }).reverse().join('');
+}
+
+function openModal(){
+  document.getElementById('addModal').classList.add('active');
+  document.getElementById('tradeDate').value = new Date().toISOString().slice(0,16);
+}
+
+function closeModal(){
+  document.getElementById('addModal').classList.remove('active');
+}
+
+function saveTrade(e){
+  if(e) e.preventDefault();
+  
+  const trade = {
+    time: Date.parse(document.getElementById('tradeDate').value),
+    symbol: document.getElementById('tradeSymbol').value || 'XAUUSD',
+    direction: parseInt(document.getElementById('tradeDirection').value),
+    open_price: parseFloat(document.getElementById('tradeEntry').value),
+    stop_loss: parseFloat(document.getElementById('tradeSL').value),
+    take_price: parseFloat(document.getElementById('tradeTP').value),
+    size: parseFloat(document.getElementById('tradeSize').value) || 1,
+    notes: document.getElementById('tradeNotes').value
+  };
+  
+  trade.profit = calculatePnl(trade);
+  
+  trades.push(trade);
+  localStorage.setItem('sualih-trades', JSON.stringify(trades));
+  render();
+  closeModal();
+}
+
+document.getElementById('dropzone').addEventListener('click', () => {
+  document.getElementById('fileInput').click();
+});
+
+document.getElementById('dropzone').addEventListener('dragover', (e) => {
+  e.preventDefault();
+  document.getElementById('dropzone').style.borderColor = 'var(--win)';
+  document.getElementById('dropzone').style.background = 'rgba(4,196,156,.05)';
+});
+
+document.getElementById('dropzone').addEventListener('dragleave', () => {
+  document.getElementById('dropzone').style.borderColor = 'var(--accent)';
+  document.getElementById('dropzone').style.background = 'transparent';
+});
+
+document.getElementById('dropzone').addEventListener('drop', (e) => {
+  e.preventDefault();
+  document.getElementById('dropzone').style.borderColor = 'var(--accent)';
+  document.getElementById('dropzone').style.background = 'transparent';
+  handleFile(e.dataTransfer.files[0]);
+});
+
+document.getElementById('fileInput').addEventListener('change', (e) => {
+  if(e.target.files[0]) handleFile(e.target.files[0]);
+});
+
+function handleFile(file){
+  const reader = new FileReader();
+  reader.onload = function(e){
+    let data;
+    
+    if(file.name.endsWith('.json')){
+      data = JSON.parse(e.target.result);
+    } else if(file.name.endsWith('.csv')){
+      const lines = e.target.result.trim().split('\n').slice(1);
+      data = lines.map(line => {
+        const parts = line.split(',');
+        const direction = parts[2] === 'Buy' ? 1 : -1;
+        return {
+          time: Date.parse(parts[0]),
+          symbol: parts[1],
+          direction: direction,
+          open_price: parseFloat(parts[3]),
+          stop_loss: parseFloat(parts[4]),
+          take_price: parseFloat(parts[5]),
+          size: parseFloat(parts[6]) || 1,
+          profit: parseFloat(parts[7]) || 0,
+          notes: parts[8] || ''
+        };
+      });
+    }
+    
+    data.forEach(trade => {
+      trades.push(trade);
+    });
+    
+    trades = trades.slice(-500);
+    localStorage.setItem('sualih-trades', JSON.stringify(trades));
+    render();
+  };
+  reader.readAsText(file);
+}
+
+function exportCSV(){
+  const header = 'Date,Symbol,Direction,Entry,Stop Loss,Take Profit,Size,P&L\n';
+  const rows = trades.map(t => {
+    const pnl = calculatePnl(t);
+    const dir = t.direction === 1 ? 'Buy' : 'Sell';
+    return `${formatDate(t.time)},${t.symbol},${dir},${t.open_price},${t.stop_loss},${t.take_price},${t.size},${pnl.toFixed(2)}`;
+  }).join('\n');
+  
+  const blob = new Blob([header + rows], {type: 'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'sualih-trades.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function exportJSON(){
+  const dataStr = JSON.stringify(trades, null, 2);
+  const blob = new Blob([dataStr], {type: 'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'sualih-trades.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+  render();
+});
+
+document.getElementById('tradeDirection').addEventListener('change', function(){
+  const val = this.value;
+  if(val === '1'){
+    document.getElementById('tradeDirection').innerHTML = '<option value="1" selected>Buy ✅</option><option value="-1">Sell ✅</option>';
+  } else {
+    document.getElementById('tradeDirection').innerHTML = '<option value="1">Buy ✅</option><option value="-1" selected>Sell ✅</option>';
+  }
+});
+</script>
+</body>
+</html>
