@@ -2,152 +2,358 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Sualih Journal</title>
+<title>Sualih Journal - Premium Trade Tracker</title>
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<link href="https://fonts.googleapis.com/icons?family=Material+Symbols+Rounded" rel="stylesheet">
 <style>
-body{font-family:Arial,sans-serif;background:#0a0a0f;color:#e0e0e0;margin:0;padding:20px}
-h1{color:#00d4ff;margin-bottom:20px}
-.stats{display:flex;gap:15px;margin-bottom:20px}
-.stat{background:#111827;padding:15px;border-radius:8px;text-align:center}
-.stat-value{font-size:1.4rem;color:#00d4ff}
-.stat-label{font-size:0.8rem;color:#888}
-button{background:#00d4ff;color:#000;border:none;padding:8px 12px;border-radius:4px;margin:5px;cursor:pointer}
-button:hover{opacity:0.9}
-#addModal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);align-items:center;justify-content:center;z-index:1000}
-#addModal.active{display:flex}
-.modal-content{background:#111827;border-radius:8px;padding:20px;width:90%;max-width:400px}
-.close{float:right;background:none;border:none;font-size:24px;cursor:pointer;color:#ff4757}
-input,select,textarea{width:100%;padding:8px;margin-top:8px}
-.table{width:100%;border-collapse:collapse;margin-top:15px}
-th,td{padding:10px;border:1px solid #1e1e22;text-align:left}
-th{background:#0f172a;color:#00d4ff}
+:root{
+  --bg:0 0 20/1;--card:rgba(255,255,255,.03);--accent:#00d4ff;--win:#04c49c;--loss:#ff4757;--text:#e0e0e0;--muted:#888;--border:rgba(255,255,255,.1);
+  --shadow:0 10px 40px rgba(0,0,0,.3);--glass:rgba(255,255,255,.05);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI','Inter',system-ui,sans-serif;background:linear-gradient(135deg,#0a0a0f 0%,#151520 50%,#0a0a0f 100%);color:var(--text);min-height:100vh;overflow-x:hidden}
+.container{max-width:1200px;margin:0 auto;padding:20px}
+
+/* Header */
+.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:30px;gap:15px;flex-wrap:wrap}
+.logo{font-size:2.2rem;font-weight:700;background:linear-gradient(90deg,var(--accent),#4a4aff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;display:flex;align-items:center;gap:8px}
+.logo span{font-size:1rem;font-weight:400;color:var(--muted)}
+
+/* Stats Grid */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:15px;margin-bottom:30px}
+.stat{background:var(--card);border-radius:16px;padding:22px;text-align:center;box-shadow:var(--shadow);border:1px solid var(--border);backdrop-filter:blur(10px)}
+.stat-value{font-size:1.6rem;font-weight:700;transition:.3s}
+.stat-value.greater{animation:countUp .8s ease-out forwards}
+.stat-label{font-size:.85rem;color:var(--muted);letter-spacing:.5px}
+
+/* Cards */
+.card{background:var(--card);border-radius:16px;padding:22px;box-shadow:var(--shadow);border:1px solid var(--border);backdrop-filter:blur(10px);transition:transform .2s}
+.card:hover{transform:translateY(-5px)}
+.card h2{font-size:1rem;font-weight:600;color:var(--accent);margin-bottom:15px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
+.card h2::before{content:'';display:inline-block;width:3px;height:18px;background:var(--accent);border-radius:2px}
+
+/* Buttons */
+.btn{
+  display:inline-flex;align-items:center;gap:8px;justify-content:center;
+  background:linear-gradient(135deg,var(--accent),#4a4aff);color:#000;
+  font-weight:600;border:none;border-radius:10px;cursor:pointer;
+  padding:10px 16px;transition:all .3s;gap:8px
+}
+.btn:hover{opacity:.9;transform:scale(1.05);box-shadow:0 6px 24px rgba(0,212,255,.3)}
+.btn:active{transform:scale(.98)}
+.btn-danger{background:linear-gradient(135deg,var(--loss),#ff2a2a);color:#fff}
+
+/* Modal */
+#addModal{
+  display:none;position:fixed;top:0;left:0;width:100%;height:100%;
+  background:rgba(0,0,0,.85);align-items:center;justify-content:center;z-index:1000;opacity:0;transition:opacity .3s
+}
+#addModal.active{display:flex;opacity:1}
+.modal-content{
+  background:var(--card);border-radius:16px;padding:30px;width:90%;max-width:420px;
+  box-shadow:var(--shadow);animation:slideUp .35s ease-out
+}
+@keyframes slideUp{from{transform:translateY(-50px);opacity:0}to{transform:translateY(0);opacity:1}}
+.close{
+  position:absolute;top:25px;right:25px;font-size:24px;color:var(--muted);
+  cursor:pointer;background:none;border:none;pointer-events:auto
+}
+.close:hover{color:var(--loss)}
+
+.modal-content h2{margin-top:0;margin-bottom:25px;color:var(--accent)}
+.input-group{margin-bottom:18px}
+.input-group label{font-size:.8rem;color:var(--muted);letter-spacing:.5px;display:block;margin-bottom:6px}
+.input-group input,.input-group select,.input-group textarea{
+  width:100%;padding:12px 14px;border-radius:10px;border:1px solid var(--border);
+  background:var(--bg);color:var(--text);font-size:14px;transition:border-color .2s
+}
+.input-group input:focus,.input-group select:focus,.input-group textarea:focus{
+  outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,212,255,.15)
+}
+.input-group textarea{min-height:70px;resize:vertical}
+
+/* Dropzone */
+#dropzone{
+  border:2px dashed var(--accent);border-radius:16px;padding:40px;text-align:center;
+  color:var(--muted);cursor:pointer;transition:all .3s;gap:10px;display:flex;flex-direction:column;align-items:center
+}
+#dropzone.drag{
+  background:var(--glass);border-color:var(--win);transform:scale(1.03)
+}
+#dropzone.material-icons{
+  font-size:48px;margin-bottom:12px;opacity:.7
+}
+
+/* Table */
+.table-container{overflow-x:auto;border-radius:12px;box-shadow:var(--shadow)}
+table{width:100%;border-collapse:collapse;font-size:14px}
+thead th{
+  background:var(--surface);color:var(--accent);font-weight:600;
+  text-align:left;padding:14px 12px;border-bottom:2px solid var(--border);letter-spacing:.5px
+}
+tbody td{padding:12px;border-bottom:1px solid var(--border);vertical-align:top}
+tbody tr{
+  transition:background .2s;
+  animation:fadeIn .4s ease-out
+}
+tbody tr:hover{background:rgba(0,212,255,.08)}
+.dir-buy{color:var(--win);font-weight:600}
+.dir-sell{color:var(--loss);font-weight:600}
+
+/* Stats */
+.stat-value{
+  background:linear-gradient(90deg,var(--text),var(--text));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  transition:transform .2s
+}
+
+/* Modal Close */
+.close{
+  position:absolute;top:25px;right:25px;font-size:24px;color:var(--muted);
+  cursor:pointer;background:none;border:none;transition:color .2s
+}
+.close:hover{color:var(--loss)}
 </style>
 </head>
 <body>
-<h1>🪙 Sualih Journal</h1>
-<div class="stats">
-  <div class="stat"><div class="stat-value" id="bal">$200</div><div class="stat-label">Balance</div></div>
-  <div class="stat"><div class="stat-value" id="pl">0</div><div class="stat-label">P&L</div></div>
-  <div class="stat"><div class="stat-value" id="trades">0</div><div class="stat-label">Trades</div></div>
-</div>
-<button onclick="openModal()">➕ Add Entry</button>
-<button onclick="exportCSV()">📥 CSV</button>
-<button onclick="exportJSON()">📋 JSON</button>
+<div class="container">
+  <div class="header">
+    <div class="logo">
+      <span class="material-icons-round">analytics</span>
+      <div>
+        <div>Sualih Journal</div>
+        <div style="font-size:.8rem;color:var(--muted);font-weight:400">Gold/XAUUSD Trade Tracker</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap">
+      <button onclick="openModal()" class="btn">
+        <span class="material-icons-round">add</span>Add Entry
+      </button>
+      <button onclick="exportCSV()" class="btn">
+        <span class="material-icons-round">download</span>CSV
+      </button>
+      <button onclick="exportJSON()" class="btn">
+        <span class="material-icons-round">picture_as_pdf</span>JSON
+      </button>
+    </div>
+  </div>
 
-<div id="dropzone" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" style="border:2px dashed #00d4ff;border-radius:8px;padding:30px;text-align:center;color:#888;cursor:pointer;margin:20px 0">
-  📂 Drop JSON/CSV File Here
-  <input type="file" id="fileInput" style="display:none" accept=".json,.csv">
-</div>
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-value" id="balance">$200.00</div>
+      <div class="stat-label">Balance</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value" id="profit">+$0.00</div>
+      <div class="stat-label">P&L</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value" id="trades">0</div>
+      <div class="stat-label">Total Trades</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value" id="winrate">0%</div>
+      <div class="stat-label">Win Rate</div>
+    </div>
+  </div>
 
-<table class="table">
-<thead><tr><th>Date</th><th>Symbol</th><th>Direction</th><th>Entry</th><th>SL</th><th>TP</th><th>Size</th><th>P&L</th></tr></thead>
-<tbody id="tbody"></tbody>
-</table>
+  <div class="card" style="margin-bottom:20px">
+    <h2 style="color:var(--accent);margin-bottom:15px">📁 Import Trades</h2>
+    <div id="dropzone" id="dz" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+      <span class="material-icons-round">file_upload</span>
+      <strong>Drop JSON/CSV Files Here</strong>
+      <p style="font-size:.8rem;color:var(--muted);margin-top:8px">Supports MT5 exports • Up to 500 trades</p>
+      <input type="file" id="fileInput" style="display:none" accept=".json,.csv">
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>📊 Trades</h2>
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Date & Time</th>
+            <th>Symbol</th>
+            <th>Direction</th>
+            <th>Entry</th>
+            <th>Stop Loss</th>
+            <th>Take Profit</th>
+            <th>P&L</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
 
 <div id="addModal">
-<div class="modal-content">
-<span class="close" onclick="closeModal()">×</span>
-<h2>Add Trade</h2>
-<input type="datetime-local" id="date" required><br>
-<input type="text" id="symbol" placeholder="Symbol"><br>
-<select id="direction"><option value="1">Buy</option><option value="-1">Sell</option></select><br>
-<input type="number" step="0.01" id="entry" placeholder="Entry" required><br>
-<input type="number" step="0.01" id="sl" placeholder="Stop Loss" required><br>
-<input type="number" step="0.01" id="tp" placeholder="Take Profit" required><br>
-<input type="number" step="0.01" id="size" placeholder="Size" value="1"><br>
-<textarea id="notes" placeholder="Notes"></textarea><br>
-<button onclick="saveTrade()">Save</button>
-</div>
+  <div class="modal-content">
+    <span class="close" onclick="closeModal()">&times;</span>
+    <h2>Add New Trade</h2>
+    <form id="tradeForm">
+      <div class="input-group">
+        <label for="tradeDate">Date & Time *</label>
+        <input type="datetime-local" id="tradeDate" required>
+      </div>
+      <div class="input-group">
+        <label for="tradeSymbol">Symbol</label>
+        <input type="text" id="tradeSymbol" placeholder="XAUUSD" value="XAUUSD">
+      </div>
+      <div class="input-group">
+        <label for="tradeDirection">Direction *</label>
+        <select id="tradeDirection">
+          <option value="1">Buy 🔼</option>
+          <option value="-1">Sell 🔽</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:12px">
+        <div style="flex:1">
+          <label for="tradeEntry">Entry Price *</label>
+          <input type="number" step="0.01" id="tradeEntry" required>
+        </div>
+        <div style="flex:1">
+          <label for="tradeSize">Size</label>
+          <input type="number" step="0.01" id="tradeSize" value="1" min="0.01">
+        </div>
+      </div>
+      <div style="display:flex;gap:12px;margin-top:15px">
+        <div style="flex:1">
+          <label for="tradeSL">Stop Loss *</label>
+          <input type="number" step="0.01" id="tradeSL" required>
+        </div>
+        <div style="flex:1">
+          <label for="tradeTP">Take Profit *</label>
+          <input type="number" step="0.01" id="tradeTP" required>
+        </div>
+      </div>
+      <div class="input-group">
+        <label for="tradeNotes">Notes (Optional)</label>
+        <textarea id="tradeNotes" placeholder="Add notes about this trade..."></textarea>
+      </div>
+      <button type="submit" class="btn" style="width:100%;margin-top:10px" onclick="saveTrade(event)">
+        <span class="material-icons-round">save</span>Save Trade
+      </button>
+    </form>
+  </div>
 </div>
 
 <script>
 let trades = JSON.parse(localStorage.getItem('sualih-trades') || '[]');
 const BAL = 200;
 
-function formatDate(ts){return new Date(Number(ts)).toLocaleString();}
+function formatDate(ts){
+  const d = new Date(Number(ts));
+  return d.toLocaleString(undefined,{dateStyle:'short',timeStyle:'short'});
+}
 
-function calculatePnl(d, e, s, tp){
-  const risk = Math.abs(e - s);
-  const reward = Math.abs(tp - e);
-  return d == 1 ? (tp - e) * s : (e - tp) * s;
+function calculatePnl(d,e,s,tp,sz){
+  return d === 1 ? (tp - e) * sz : (e - tp) * sz;
+}
+
+function getWinRate(){
+  if(trades.length === 0) return 0;
+  const wins = trades.filter(t => calculatePnl(t.direction,t.open_price,t.stop_loss,t.take_price,t.size) > 0).length;
+  return (wins / trades.length * 100).toFixed(1);
+}
+
+function getProfitFactor(){
+  if(trades.length === 0) return '∞';
+  const gains = trades.filter(t => calculatePnl(t.direction,t.open_price,t.stop_loss,t.take_price,t.size) > 0)
+    .reduce((a,t) => a + calculatePnl(t.direction,t.open_price,t.stop_loss,t.take_price,t.size), 0);
+  const losses = Math.abs(trades.filter(t => calculatePnl(t.direction,t.open_price,t.stop_loss,t.take_price,t.size) < 0)
+    .reduce((a,t) => a + calculatePnl(t.direction,t.open_price,t.stop_loss,t.take_price,t.size), 0));
+  return (gains / losses).toFixed(2) + 'x';
 }
 
 function render(){
-  let pnl = 0;
-  trades.forEach(t => {pnl += calculatePnl(t.direction, t.open_price, t.stop_loss, t.take_price) * t.size;});
-  document.getElementById('bal').textContent = '$' + (BAL + pnl).toFixed(2);
-  document.getElementById('pl').textContent = '+' + pnl.toFixed(2);
+  const totalPnL = trades.reduce((sum, t) => sum + calculatePnl(t.direction,t.open_price,t.stop_loss,t.take_price,t.size), 0);
+  document.getElementById('balance').textContent = '$' + (BAL + totalPnL).toFixed(2);
+  document.getElementById('profit').textContent = (totalPnL >= 0 ? '+' : '') + Math.abs(totalPnL).toFixed(2);
   document.getElementById('trades').textContent = trades.length;
+  document.getElementById('winrate').textContent = getWinRate() + '%';
+  
   document.getElementById('tbody').innerHTML = trades.map((t, i) => {
-    const p = calculatePnl(t.direction, t.open_price, t.stop_loss, t.take_price) * t.size;
-    return '<tr style="animation:fadeIn .3s '+ (i*0.05) + 's">' +
+    const p = calculatePnl(t.direction, t.open_price, t.stop_loss, t.take_price, t.size);
+    const dir = t.direction === 1 ? 'Buy 🔼' : 'Sell 🔽';
+    const dirClass = t.direction === 1 ? 'dir-buy' : 'dir-loss';
+    const pnlClass = p >= 0 ? 'pnl-positive' : 'pnl-negative';
+    return '<tr style="animation-delay:' + (i * 0.05) + 's">' +
       '<td>' + formatDate(t.time) + '</td>' +
       '<td>' + (t.symbol || 'XAUUSD') + '</td>' +
-      '<td>' + (t.direction == 1 ? 'Buy' : 'Sell') + '</td>' +
+      '<td class="' + dirClass + '">' + dir + '</td>' +
       '<td>' + t.open_price + '</td>' +
       '<td>' + t.stop_loss + '</td>' +
       '<td>' + t.take_price + '</td>' +
-      '<td>' + t.size + '</td>' +
-      '<td>' + p.toFixed(2) + '</td></tr>';
+      '<td class="' + pnlClass + '">' + (p >= 0 ? '+' : '') + p.toFixed(2) + '</td>' +
+      '</tr>';
   }).reverse().join('');
 }
 
-function openModal(){document.getElementById('addModal').classList.add('active');}
-function closeModal(){document.getElementById('addModal').classList.remove('active');}
+function openModal(){
+  document.getElementById('addModal').classList.add('active');
+  document.getElementById('tradeDate').value = new Date().toISOString().slice(0,16);
+}
 
-function saveTrade(){
+function closeModal(){
+  document.getElementById('addModal').classList.remove('active');
+  document.getElementById('tradeForm').reset();
+}
+
+function saveTrade(e){
+  if(e) e.preventDefault();
+  
   const t = {
-    time: Date.parse(document.getElementById('date').value),
-    symbol: document.getElementById('symbol').value,
-    direction: parseInt(document.getElementById('direction').value),
-    open_price: parseFloat(document.getElementById('entry').value),
-    stop_loss: parseFloat(document.getElementById('sl').value),
-    take_price: parseFloat(document.getElementById('tp').value),
-    size: parseFloat(document.getElementById('size').value) || 1,
-    notes: document.getElementById('notes').value
+    time: Date.parse(document.getElementById('tradeDate').value),
+    symbol: document.getElementById('tradeSymbol').value || 'XAUUSD',
+    direction: parseInt(document.getElementById('tradeDirection').value),
+    open_price: parseFloat(document.getElementById('tradeEntry').value),
+    stop_loss: parseFloat(document.getElementById('tradeSL').value),
+    take_price: parseFloat(document.getElementById('tradeTP').value),
+    size: parseFloat(document.getElementById('tradeSize').value) || 1,
+    notes: document.getElementById('tradeNotes').value
   };
+  
   trades.push(t);
   localStorage.setItem('sualih-trades', JSON.stringify(trades));
   render();
   closeModal();
 }
 
-function handleDragOver(e){e.preventDefault(); document.getElementById('dropzone').style.borderColor = '#04c49c';}
-function handleDragLeave(e){e.preventDefault(); document.getElementById('dropzone').style.borderColor = '#00d4ff';}
+function handleDragOver(e){
+  e.preventDefault();
+  document.getElementById('dz').classList.add('drag');
+}
+
+function handleDragLeave(e){
+  e.preventDefault();
+  document.getElementById('dz').classList.remove('drag');
+}
+
 function handleDrop(e){
   e.preventDefault();
-  document.getElementById('dropzone').style.borderColor = '#00d4ff';
+  document.getElementById('dz').classList.remove('drag');
   const f = e.dataTransfer.files[0];
   const reader = new FileReader();
   reader.onload = function(e2){
-    let data;
-    if(f.name.endsWith('.json')) data = JSON.parse(e2.target.result);
-    else if(f.name.endsWith('.csv')) data = e2.target.result.trim().split('\n').slice(1).map(l => {
-      const p = l.split(',');
-      return {
-        time: Date.parse(p[0]),
-        symbol: p[1],
-        direction: p[2] === 'Buy' ? 1 : -1,
-        open_price: +p[3],
-        stop_loss: +p[4],
-        take_price: +p[5],
-        size: +p[6] || 1,
-        profit: +p[7] || 0
-      };
-    });
-    data.forEach(t => trades.push(t));
-    localStorage.setItem('sualih-trades', JSON.stringify(trades));
-    render();
+    parseAndLoad(e2.target.result, f.name);
   };
   reader.readAsText(f);
 }
-function handleFile(f){
-  const fr = new FileReader();
-  fr.onload = function(e){
-    let data;
-    if(f.name.endsWith('.json')) data = JSON.parse(e.target.result);
-    else if(f.name.endsWith('.csv')) {
-      const lines = e.target.result.trim().split('\n').slice(1);
-      data = lines.map(l => {
+
+function handleFileInput(e){
+  if(e.target.files[0]) handleDrop({dataTransfer:{files:[e.target.files[0]]}});
+}
+
+function parseAndLoad(data, filename){
+  let items = [];
+  try {
+    if(filename.endsWith('.json')){
+      items = JSON.parse(data);
+    } else if(filename.endsWith('.csv')){
+      const lines = data.trim().split('\n').slice(1);
+      items = lines.map(l => {
         const p = l.split(',');
         return {
           time: Date.parse(p[0]),
@@ -161,59 +367,47 @@ function handleFile(f){
         };
       });
     }
-    data.forEach(t => trades.push(t));
+    items.forEach(t => trades.push(t));
+    trades = trades.slice(-500);
     localStorage.setItem('sualih-trades', JSON.stringify(trades));
     render();
-  };
-  fr.readAsText(f);
+  } catch(err){
+    console.error('Parse error:', err);
+  }
 }
 
-document.getElementById('dropzone').addEventListener('click', function() {
-  document.getElementById('fileInput').click();
-});
-
-document.getElementById('fileInput').addEventListener('change', function(e) {
-  if(e.target.files[0]) handleFile(e.target.files[0]);
-});
-
 function exportCSV(){
-  const header = 'Date,Symbol,Direction,Entry,SL,TP,Size,P&L\n';
+  const header = 'Date,Symbol,Direction,Entry,Stop Loss,Take Profit,Size,P&L\n';
   const rows = trades.map(t => {
-    const p = calculatePnl(t.direction, t.open_price, t.stop_loss, t.take_price) * t.size;
+    const p = calculatePnl(t.direction, t.open_price, t.stop_loss, t.take_price, t.size);
     return formatDate(t.time) + ',' + 
            (t.symbol || 'XAUUSD') + ',' +
-           (t.direction == 1 ? 'Buy' : 'Sell') + ',' +
+           (t.direction === 1 ? 'Buy' : 'Sell') + ',' +
            t.open_price + ',' +
            t.stop_loss + ',' +
            t.take_price + ',' +
            t.size + ',' +
            p.toFixed(2);
   }).join('\n');
-  const blob = new Blob([header + rows], {type: 'text/csv'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'sualih-trades.csv';
-  a.click();
-  URL.revokeObjectURL(url);
+  downloadFile(header + rows, 'sualih-trades.csv', 'text/csv');
 }
 
 function exportJSON(){
-  const blob = new Blob([JSON.stringify(trades, null, 2)], {type: 'application/json'});
+  downloadFile(JSON.stringify(trades, null, 2), 'sualih-trades.json', 'application/json');
+}
+
+function downloadFile(content, filename, type){
+  const blob = new Blob([content], {type});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = 'sualih-trades.json';
+  a.download = filename;
   a.click();
   URL.revokeObjectURL(url);
 }
 
-window.onload = function(){
-  render();
-  const style = document.createElement('style');
-  style.textContent = '@keyframes fadeIn {from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}';
-  document.head.appendChild(style);
-};
+document.getElementById('fileInput').addEventListener('change', handleFileInput);
+window.onload = function(){render()};
 </script>
 </body>
 </html>
